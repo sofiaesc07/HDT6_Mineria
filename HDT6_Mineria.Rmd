@@ -4,26 +4,52 @@ output: html_document
 date: "2023-04-14"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, echo=FALSE}
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(tree)
+library(randomForest)
+library(ggplot2)
+library(tidyr)
+library(e1071)
+library(caret)
+library(dummy)
+library(ModelMetrics)
+
+
+datos <- read.csv("train.csv")
 ```
 
-## R Markdown
+##Pregunta 1. Variables Dicotomicas
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+datos$clasification <- ifelse(datos$SalePrice > 214000, "Caras", ifelse(datos$SalePrice>163000, "Intemedia", "Economicas"))
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## Definicion de variables dicotomicas
+datos['Econonmicas']<- ifelse(datos$SalePrice<163000,1,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,0,0))
+datos['Intermedia']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,1,0))
+datos['Caras']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,0,1))
 
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
+##Pregunta 2. Conjunto de entramiento y prueba
 
-You can also embed plots, for example:
+```{r}
+porcentaje<-0.7
+set.seed(123)
+corte <- sample(nrow(datos),nrow(datos)*porcentaje)
+training1<-datos[corte,]
+test1<-datos[-corte,]
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+datos2 <- dplyr::select_if(datos, is.numeric)
+datos2 <- na.omit(datos2)
+datosc <- scale(datos2)
+corte <- sample(nrow(datosc),nrow(datosc)*porcentaje)
+training<-datosc[corte,]
+test<-datosc[-corte,]
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
