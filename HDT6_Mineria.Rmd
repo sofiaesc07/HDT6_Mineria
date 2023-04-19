@@ -9,8 +9,7 @@ library(dplyr)
 library(rpart)
 library(rpart.plot)
 library(caret)
-library(tree)
-library(randomForest)
+library(profvis)
 library(ggplot2)
 library(tidyr)
 library(e1071)
@@ -20,16 +19,17 @@ library(ModelMetrics)
 
 
 datos <- read.csv("train.csv")
+datos <- datos %>% mutate_at(c('MSZoning', 'Street', 'Alley', 'LotShape', 'LandContour', 'Utilities', 'LotConfig', 'LandSlope', 'Condition2', 'RoofMatl', 'Exterior2nd', 'Electrical'),as.factor)
 ```
 
 ##Pregunta 1. Variables Dicotomicas
 
 ```{r}
-datos$clasification <- ifelse(datos$SalePrice > 214000, "Caras", ifelse(datos$SalePrice>163000, "Intemedia", "Economicas"))
+datos$clasification <- ifelse(datos$SalePrice > 214000, "Caras", ifelse(datos$SalePrice>163000, "Intemedias", "Economicas"))
 
 ## Definicion de variables dicotomicas
-datos['Econonmicas']<- ifelse(datos$SalePrice<163000,1,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,0,0))
-datos['Intermedia']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,1,0))
+datos['Economicas']<- ifelse(datos$SalePrice<163000,1,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,0,0))
+datos['Intermedias']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,1,0))
 datos['Caras']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 & datos$SalePrice<214000,0,1))
 
 ```
@@ -37,6 +37,7 @@ datos['Caras']<- ifelse(datos$SalePrice<163000,0,ifelse(datos$SalePrice>=163000 
 ##Pregunta 2. Conjunto de entramiento y prueba
 
 ```{r}
+##utilizado en hojas anteriores
 porcentaje<-0.7
 set.seed(123)
 corte <- sample(nrow(datos),nrow(datos)*porcentaje)
@@ -51,5 +52,150 @@ training<-datosc[corte,]
 test<-datosc[-corte,]
 
 ```
+
+##Pregunta 3. Modelo para casas Caras con entrenamiento
+
+```{r}
+#seleccion de variables numericas para el modelo
+numericas <- c("GrLivArea","YearBuilt","BsmtUnfSF","TotalBsmtSF","YearRemodAdd", "LotArea", "Caras")
+#modelo de validacion cruzada
+cv <- trainControl(method="cv", 
+                          number=10)
+modeloCaras <- caret::train(Caras~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+
+summary(modeloCaras)
+```
+
+Se observa como todas las variables son significativas dentro del modelo.
+
+##Pregunta 4. Analisis del modelo
+
+```{r}
+##Prediccion de las variables
+pred <- predict(modeloCaras,newdata = training1[,-1])
+pred <- ifelse(pred>=0.5,1,0)
+head(pred)
+caret::confusionMatrix(as.factor(pred),as.factor(training1$Caras))
+```
+
+Tiene una exactitud de 94.32 %, le fue muy bien clasificando las casas Caras, esto tambien indica que las variables estan bien correlacionadas.
+
+##Pregunta 5. Eficacia del algoritmo para clasificar con el conjunto prueba
+
+```{r}
+pred2 <- predict(modeloCaras,newdata = test1[,-1])
+pred2 <- ifelse(pred2>=0.5,1,0)
+head(pred2)
+caret::confusionMatrix(as.factor(pred2),as.factor(test1$Caras))
+
+```
+
+Tiene una exactitud menor pero de igual manera bastante acertada, puesto que tiene un accuracy del 91.34%.
+
+
+##Pregunta 6. Sobreajuste del modelo
+
+```{r}
+
+```
+
+##Pregunta 7. Dos modelos con distinas variables predictorias.
+
+```{r modelo 2}
+##Modelo 2. Casas intermedias
+cv <- trainControl(method="cv", 
+                          number=10)
+modeloIntermedia <- caret::train(Intermedias~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+summary(modeloIntermedia)
+```
+
+```{r}
+##Modelo 3. Casas economicas
+cv <- trainControl(method="cv", 
+                          number=10)
+modeloEconomica <- caret::train(Economicas~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+summary(modeloEconomica)
+```
+
+##Pregunta 8. Análisis de la eficiencia del algoritmo
+
+```{r}
+##Matriz de confusión modelo 3
+pred <- predict(modeloIntermedia,newdata = training1[,-1])
+pred <- ifelse(pred>=0.5,1,0)
+head(pred)
+caret::confusionMatrix(as.factor(pred),as.factor(training1$Intermedias))
+```
+
+```{r}
+##Matriz de confusión modelo 2
+pred <- predict(modeloEconomica,newdata = training1[,-1])
+pred <- ifelse(pred>=0.5,1,0)
+head(pred)
+caret::confusionMatrix(as.factor(pred),as.factor(training1$Economicas))
+```
+
+
+```{r}
+##Efectividad
+
+#MODELO 1
+Rprof(memory.profiling = TRUE)
+cv <- trainControl(method="cv", number=10)
+modeloCaras <- caret::train(Caras~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+Rprof(NULL)
+pm1<-summaryRprof(memory = "both")
+
+#MODELO 2
+Rprof(memory.profiling = TRUE)
+cv <- trainControl(method="cv", 
+                          number=10)
+modeloIntermedia <- caret::train(Intermedias~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+Rprof(NULL)
+pm2<-summaryRprof(memory = "both")
+
+
+#MODELO 3
+Rprof(memory.profiling = TRUE)
+cv <- trainControl(method="cv", 
+                          number=10)
+modeloEconomica <- caret::train(Economicas~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
+Rprof(NULL)
+pm3<-summaryRprof(memory = "both")
+
+print("Tiempo de entrenamiento modelo casas Caras(ms): ")
+pm1$sampling.time
+print("Tiempo de entrenamiento modelo casas Intermedias(ms): ")
+pm2$sampling.time
+print("Tiempo de entrenamiento modelo casas Economicas(ms): ")
+pm3$sampling.time
+
+print("Total memoria modelo casas Caras(MB): ")
+sum(pm1$by.total$mem.total)
+print("Total memoria modelo casas Intermedias(MB): ")
+sum(pm2$by.total$mem.total)
+print("Total memoria modelo casas Economicas(MB): ")
+sum(pm3$by.total$mem.total)
+```
+
+El tiempo de ejecución del modelo solo con las variables numéricas es de r pm1$sampling.time ms el de todas las variables es de r pm2$sampling.time ms y el de las variables con coeficientes más significativos es de r pm2$sampling.time ms. No hay diferencias entre los dos últimos modelos.
+
+En cuanto a la memoria: El modelo de las variables númericas utilizó un máximo de $r sum(pm1$by.total$mem.total)$MB, el de todas las variables r sum(pm2$by.total$mem.total) y el otro modelo r sum(pm3$by.total$mem.total).
+
+
+
+##Pregunta 9. Determine cual de todos los modelos es mejor
+```{r}
+
+```
+
+##Pregunta 10. Haga un modelo de árbol de decisión
+```{r}
+
+```
+
+##Pregunta 11. Compare la eficiencia de los 3 modelos que creó en el punto anterior y el mejor de los de regresión logística a ¿Cuál se demoró más en procesar?¿Cuál se equivocó más?¿Cuál se equivocó menos?¿por qué?
+
+
 
 
