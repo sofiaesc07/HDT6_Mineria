@@ -95,9 +95,18 @@ Tiene una exactitud menor pero de igual manera bastante acertada, puesto que tie
 
 ##Pregunta 6. Sobreajuste del modelo
 
-```{r}
+```{r,echo=FALSE}
+trainPredict<-predict(modeloCaras,newdata = training1[,c('SalePrice','GrLivArea','LotFrontage','LotArea','BsmtQual','PoolArea','YearBuilt','BsmtUnfSF','TotalBsmtSF','YearRemodAdd','LotArea')], type = "raw")
+trainPred<- ifelse(trainPredict>0.5,1,0)
+confusionMatrix(as.factor(training1$Cara),as.factor(pred))
+
+#Calculo de rmse
+rmse(training1$Cara,pred)
+rmse(test1$Cara,pred)
 
 ```
+
+Podemos notar que para el conjunto de entrenamiento y el test el valor RMSE se aleja de 0, por lo tanto se asume que no existen problemas de overfitting.
 
 ##Pregunta 7. Dos modelos con distinas variables predictorias.
 
