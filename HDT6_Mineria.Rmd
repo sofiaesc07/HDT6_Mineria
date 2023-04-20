@@ -199,9 +199,7 @@ En cuanto a la memoria: El modelo de las variables númericas utilizó un máxim
 
 
 ##Pregunta 9. Determine cual de todos los modelos es mejor
-```{r}
-
-```
+Basandose en la eficiencia y los resultados basados en los conjuntos de test se puede concluir que el primer modelo realizado es el que obtiene mejores resultados.
 
 ##Pregunta 10. Haga un modelo de árbol de decisión
 ```{r}
