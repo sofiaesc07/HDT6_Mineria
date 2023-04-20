@@ -57,6 +57,7 @@ test<-datosc[-corte,]
 
 ```{r}
 #seleccion de variables numericas para el modelo
+
 numericas <- c("GrLivArea","YearBuilt","BsmtUnfSF","TotalBsmtSF","YearRemodAdd", "LotArea", "Caras")
 #modelo de validacion cruzada
 cv <- trainControl(method="cv", 
@@ -66,7 +67,7 @@ modeloCaras <- caret::train(Caras~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+Year
 summary(modeloCaras)
 ```
 
-Se observa como todas las variables son significativas dentro del modelo.
+Se observa como casi todas las variables son significativas dentro del model, por medio del valor de z. Y se observa un AIC  de 509.72. Para la eleccion de las variables numericas a utilizar en el modelo nos basamos en la hoja de trabajo anterior en donde observamos que estas variables eran las que estaban más correlacionadas con la variable SalePrice.
 
 ##Pregunta 4. Analisis del modelo
 
@@ -95,9 +96,18 @@ Tiene una exactitud menor pero de igual manera bastante acertada, puesto que tie
 
 ##Pregunta 6. Sobreajuste del modelo
 
-```{r}
+```{r,echo=FALSE}
+trainPredict<-predict(modeloCaras,newdata = training1[,c('SalePrice','GrLivArea','LotFrontage','LotArea','BsmtQual','PoolArea','YearBuilt','BsmtUnfSF','TotalBsmtSF','YearRemodAdd','LotArea')], type = "raw")
+trainPred<- ifelse(trainPredict>0.5,1,0)
+confusionMatrix(as.factor(training1$Cara),as.factor(pred))
+
+#Calculo de rmse
+rmse(training1$Cara,pred)
+rmse(test1$Cara,pred)
 
 ```
+
+Podemos notar que para el conjunto de entrenamiento y el test el valor RMSE se aleja de 0, por lo tanto se asume que no existen problemas de overfitting.
 
 ##Pregunta 7. Dos modelos con distinas variables predictorias.
 
@@ -109,6 +119,8 @@ modeloIntermedia <- caret::train(Intermedias~GrLivArea+YearBuilt+BsmtUnfSF+Total
 summary(modeloIntermedia)
 ```
 
+Para este modelo se observan que todas las variables cumples con el estadistico de z y se observa un AIC de 1070, el cuál es mayor a nuestro modelo de casas caras. 
+
 ```{r}
 ##Modelo 3. Casas economicas
 cv <- trainControl(method="cv", 
@@ -116,6 +128,7 @@ cv <- trainControl(method="cv",
 modeloEconomica <- caret::train(Economicas~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
 summary(modeloEconomica)
 ```
+Para este modelo se observan dos variables que no cumplen con el estadistico z y se observa un AIC de 614.98, el cuál es mayor a nuestro modelo de casas caras. 
 
 ##Pregunta 8. Análisis de la eficiencia del algoritmo
 
@@ -126,6 +139,7 @@ pred <- ifelse(pred>=0.5,1,0)
 head(pred)
 caret::confusionMatrix(as.factor(pred),as.factor(training1$Intermedias))
 ```
+Se observa que es un modelo bien ajustado ya que el accuracy de la matriz de confusión es de 75.51% pero podría mejorar, eso podría deberse a un sobreajuste en los datos de casas intermedias.
 
 ```{r}
 ##Matriz de confusión modelo 2
@@ -134,7 +148,7 @@ pred <- ifelse(pred>=0.5,1,0)
 head(pred)
 caret::confusionMatrix(as.factor(pred),as.factor(training1$Economicas))
 ```
-
+Se observa que es un modelo bien ajustado ya que el accuracy de la matriz de confusión es de 89.03% pero podría mejorar. 
 
 ```{r}
 ##Efectividad
@@ -185,9 +199,7 @@ En cuanto a la memoria: El modelo de las variables númericas utilizó un máxim
 
 
 ##Pregunta 9. Determine cual de todos los modelos es mejor
-```{r}
-
-```
+Basandose en la eficiencia y los resultados basados en los conjuntos de test se puede concluir que el primer modelo realizado es el que obtiene mejores resultados.
 
 ##Pregunta 10. Haga un modelo de árbol de decisión
 ```{r}
