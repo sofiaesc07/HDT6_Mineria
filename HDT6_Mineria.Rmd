@@ -203,11 +203,18 @@ Basandose en la eficiencia y los resultados basados en los conjuntos de test se 
 
 ##Pregunta 10. Haga un modelo de árbol de decisión
 ```{r}
-
+library(rpart)
+library(rpart.plot)
+library(randomForest)
+arbol <- rpart(Caras ~., data=training1[,c('SalePrice','GrLivArea','Caras','LotFrontage','LotArea','BsmtQual','PoolArea')], method="class")
+prp(arbol)
+clasificadorRF <- randomForest(SalePrice ~ ., data = datos2, ntree = 250)
+y_pred <- predict(clasificadorRF, newdata = training1)
+y_pred
 ```
 
 ##Pregunta 11. Compare la eficiencia de los 3 modelos que creó en el punto anterior y el mejor de los de regresión logística a ¿Cuál se demoró más en procesar?¿Cuál se equivocó más?¿Cuál se equivocó menos?¿por qué?
 
-
+Se demoró mas en procesar el random forest que el de árbol de regresión.
 
 
