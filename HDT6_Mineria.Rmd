@@ -57,6 +57,7 @@ test<-datosc[-corte,]
 
 ```{r}
 #seleccion de variables numericas para el modelo
+
 numericas <- c("GrLivArea","YearBuilt","BsmtUnfSF","TotalBsmtSF","YearRemodAdd", "LotArea", "Caras")
 #modelo de validacion cruzada
 cv <- trainControl(method="cv", 
@@ -66,7 +67,7 @@ modeloCaras <- caret::train(Caras~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+Year
 summary(modeloCaras)
 ```
 
-Se observa como casi todas las variables son significativas dentro del model, por medio del valor de z. Y se observa un AIC  de 509.72
+Se observa como casi todas las variables son significativas dentro del model, por medio del valor de z. Y se observa un AIC  de 509.72. Para la eleccion de las variables numericas a utilizar en el modelo nos basamos en la hoja de trabajo anterior en donde observamos que estas variables eran las que estaban más correlacionadas con la variable SalePrice.
 
 ##Pregunta 4. Analisis del modelo
 
