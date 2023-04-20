@@ -66,7 +66,7 @@ modeloCaras <- caret::train(Caras~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+Year
 summary(modeloCaras)
 ```
 
-Se observa como todas las variables son significativas dentro del modelo.
+Se observa como casi todas las variables son significativas dentro del model, por medio del valor de z. Y se observa un AIC  de 509.72
 
 ##Pregunta 4. Analisis del modelo
 
@@ -109,6 +109,8 @@ modeloIntermedia <- caret::train(Intermedias~GrLivArea+YearBuilt+BsmtUnfSF+Total
 summary(modeloIntermedia)
 ```
 
+Para este modelo se observan que todas las variables cumples con el estadistico de z y se observa un AIC de 1070, el cuál es mayor a nuestro modelo de casas caras. 
+
 ```{r}
 ##Modelo 3. Casas economicas
 cv <- trainControl(method="cv", 
@@ -116,6 +118,7 @@ cv <- trainControl(method="cv",
 modeloEconomica <- caret::train(Economicas~GrLivArea+YearBuilt+BsmtUnfSF+TotalBsmtSF+YearRemodAdd+LotArea, data=training1,method="glm", family = binomial, trControl = cv)
 summary(modeloEconomica)
 ```
+Para este modelo se observan dos variables que no cumplen con el estadistico z y se observa un AIC de 614.98, el cuál es mayor a nuestro modelo de casas caras. 
 
 ##Pregunta 8. Análisis de la eficiencia del algoritmo
 
@@ -126,6 +129,7 @@ pred <- ifelse(pred>=0.5,1,0)
 head(pred)
 caret::confusionMatrix(as.factor(pred),as.factor(training1$Intermedias))
 ```
+Se observa que es un modelo bien ajustado ya que el accuracy de la matriz de confusión es de 75.51% pero podría mejorar, eso podría deberse a un sobreajuste en los datos de casas intermedias.
 
 ```{r}
 ##Matriz de confusión modelo 2
@@ -134,7 +138,7 @@ pred <- ifelse(pred>=0.5,1,0)
 head(pred)
 caret::confusionMatrix(as.factor(pred),as.factor(training1$Economicas))
 ```
-
+Se observa que es un modelo bien ajustado ya que el accuracy de la matriz de confusión es de 89.03% pero podría mejorar. 
 
 ```{r}
 ##Efectividad
